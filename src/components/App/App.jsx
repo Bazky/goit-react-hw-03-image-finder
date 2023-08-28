@@ -29,7 +29,13 @@ export const App = () => {
       const response = await axios.get(
         `https://pixabay.com/api/?q=${newQuery}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
       );
-      setImages(prevImages => [...prevImages, ...response.data.hits]);
+
+      const newImages = response.data.hits.filter(
+        newImage =>
+          !images.some(existingImage => existingImage.id === newImage.id)
+      );
+
+      setImages(prevImages => [...prevImages, ...newImages]);
     } catch (error) {
       console.error('Error fetching images:', error);
     }
