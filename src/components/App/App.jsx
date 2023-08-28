@@ -34,7 +34,6 @@ export const App = () => {
         newImage =>
           !images.some(existingImage => existingImage.id === newImage.id)
       );
-
       setImages(prevImages => [...prevImages, ...newImages]);
     } catch (error) {
       console.error('Error fetching images:', error);
