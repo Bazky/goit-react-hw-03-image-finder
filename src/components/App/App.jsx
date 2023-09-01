@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Searchbar } from '../Searchbar/Searchbar';
 import { ImageGallery } from '../ImageGallery/ImageGallery';
@@ -14,36 +14,43 @@ export const App = () => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [triggerFetch, setTriggerFetch] = useState(false);
   const API_KEY = '35883323-bde325eb0a57257c02d067bfb';
+
+  useEffect(() => {
+    if (triggerFetch) {
+      const fetchImages = async () => {
+        setLoading(true);
+        try {
+          const response = await axios.get(
+            `https://pixabay.com/api/?q=${query}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
+          );
+          const newImages = response.data.hits.filter(
+            newImage =>
+              !images.some(existingImage => existingImage.id === newImage.id)
+          );
+          setImages(prevImages => [...prevImages, ...newImages]);
+        } catch (error) {
+          console.error('Error fetching images:', error);
+        }
+        setLoading(false);
+      };
+
+      fetchImages();
+      setTriggerFetch(false);
+    }
+  }, [triggerFetch, query, page, images]);
 
   const handleSearchSubmit = newQuery => {
     setQuery(newQuery);
     setImages([]);
     setPage(1);
-    fetchImages(newQuery);
-  };
-
-  const fetchImages = async newQuery => {
-    setLoading(true);
-    try {
-      const response = await axios.get(
-        `https://pixabay.com/api/?q=${newQuery}&page=${page}&key=${API_KEY}&image_type=photo&orientation=horizontal&per_page=12`
-      );
-
-      const newImages = response.data.hits.filter(
-        newImage =>
-          !images.some(existingImage => existingImage.id === newImage.id)
-      );
-      setImages(prevImages => [...prevImages, ...newImages]);
-    } catch (error) {
-      console.error('Error fetching images:', error);
-    }
-    setLoading(false);
+    setTriggerFetch(true);
   };
 
   const handleLoadMore = () => {
     setPage(prevPage => prevPage + 1);
-    fetchImages(query);
+    setTriggerFetch(true);
   };
 
   const handleImageClick = image => {
